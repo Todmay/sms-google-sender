@@ -1,1 +1,4 @@
+time
 selenium
+webdriver_manager.chrome
+pandas

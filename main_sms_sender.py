@@ -117,7 +117,26 @@ def sms_send(driver, phone_num, sms_text = "Hello, this is a test message"):
     send_sms_click(driver)
 
     return None
-
+# Логирование и защита от повторной отправки
+def logs_check(phone_num):
+    # Создаем файл если его нет файл для записи
+    log = open('logs.txt', 'a+')
+    log.close()
+    # Читаем весь файл
+    log = open('logs.txt', 'r')
+    data = log.read()
+    log.close()
+    is_not_send = True
+    if phone_num not in data:
+        log = open('logs.txt', 'w')
+        log.write(phone_num)
+        log.close()
+    else:
+        is_not_send = False
+        print('Попытка повторной отправки на номер ' + phone_num)
+    # Закрываем файл
+    
+    return is_not_send
 
 ##### рабочий код начинается отсюда ######
 
@@ -126,8 +145,7 @@ driver = browser_open()
 df = main_parser()
 
 for row in df.itertuples():
-	print(row[1])
-	print(row[2])
-	new_sms_start(driver)
-	sms_send(driver, row[1], row[2])
-	time.sleep(base_delay*10)
+    if logs_check(row[1]):
+        new_sms_start(driver)
+        sms_send(driver, row[1], row[2])
+    time.sleep(base_delay*10)
