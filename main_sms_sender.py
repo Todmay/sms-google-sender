@@ -110,10 +110,11 @@ def btn_send_click(driver):
         start_send.click()
     except:    
     	print('Кнопка отправки не прогрузилась')
-    	time.sleep(base_delay*2)
+    	time.sleep(base_delay*4)
 # если кнопки уже нет, а окно отправки уже открылось, то надо выйти из рекурсии
-    	if (driver.find_elements_by_xpath(text_path)):
-    		return None
+    	if (driver.find_element(by=By.XPATH, value=text_path)):
+            print('АГА')
+            return None
     	else:
     		btn_send_click(driver)
 
@@ -195,7 +196,7 @@ df = main_parser()
 
 for row in df.itertuples():
     if len(row[1]) > 9 and row[1][0] == '+' and len(row[2]) > 3:
-        if logs_check(row[1]):    
+        if logs_check(row[1]) or True:    
             new_sms_start(driver)
             sms_send(driver, row[1], row[2])
     else:
