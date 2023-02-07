@@ -113,8 +113,7 @@ def btn_send_click(driver):
     	time.sleep(base_delay*4)
 # если кнопки уже нет, а окно отправки уже открылось, то надо выйти из рекурсии
     	if (driver.find_element(by=By.XPATH, value=text_path)):
-            print('АГА')
-            return None
+    		return None
     	else:
     		btn_send_click(driver)
 
@@ -196,7 +195,7 @@ df = main_parser()
 
 for row in df.itertuples():
     if len(row[1]) > 9 and row[1][0] == '+' and len(row[2]) > 3:
-        if logs_check(row[1]) or True:    
+        if logs_check(row[1]):    
             new_sms_start(driver)
             sms_send(driver, row[1], row[2])
     else:
