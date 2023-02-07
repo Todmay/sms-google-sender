@@ -40,9 +40,8 @@ def build_driver():
 
         os.remove(SELENIUM_SESSION_FILE)
 
-
+    
     driver = webdriver.Chrome(ChromeDriverManager().install(), options=options, port=SELENIUM_PORT)
-
     session_file = open(SELENIUM_SESSION_FILE, 'a+')
     session_file.writelines([
         driver.command_executor._url,
@@ -55,8 +54,12 @@ def build_driver():
     return driver
 
 
-driver = build_driver()
+#driver = build_driver()
+driver = webdriver.Chrome(ChromeDriverManager().install())
+
 # Открываем нужную вкладку авторизации, проходим её один раз
 driver.get("https://messages.google.com/web/")
 
-
+# цикл нужен при запуске не через консоль, иначе и так работает
+#while True:
+#   continue
