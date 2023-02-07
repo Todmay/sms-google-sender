@@ -1,6 +1,8 @@
 from selenium import webdriver
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
+import os
 
 import time
 
@@ -22,6 +24,52 @@ sms_but_path = '/html/body/mw-app/mw-bootstrap/div/main/mw-main-container/div/mw
 
 ###### некоторые настройки #######
 
+#### параметры для сохранения сессии, сессию храним в файле
+SELENIUM_SESSION_FILE = './selenium_session'
+SELENIUM_PORT=5015
+
+
+###### билдим драйвер так чтобы сохранялась сессия
+def build_driver():
+    options = Options()
+    options.add_argument("--disable-infobars")
+    options.add_argument("--enable-file-cookies")
+
+# если ранее билдер запустил браузер, то начинаем работать в нём, иначе иф пропускает и создаем новый
+
+    try: 
+        if os.path.isfile(SELENIUM_SESSION_FILE):
+            session_file = open(SELENIUM_SESSION_FILE)
+            session_info = session_file.readlines()
+            session_file.close()
+            executor_url = session_info[0].strip()
+            session_id = session_info[1].strip()
+            capabilities = options.to_capabilities()
+            driver = webdriver.Remote(command_executor=executor_url, desired_capabilities=capabilities)
+        # предотвращение кучи пустых окон, но если окно закрывается то раскомментить
+            driver.close()
+            driver.quit() 
+
+        #добавляем сессию из файла к драйверу
+            driver.session_id = session_id
+            return driver
+    except:
+        print('Файл настройки есть, но по указанной сессии нет доступа к браузеру, вероятно он не запущен, перезапустите билдер')
+        print('Стартуем новую сессию')
+
+    driver = webdriver.Chrome(ChromeDriverManager().install(), options=options, port=SELENIUM_PORT)
+
+    session_file = open(SELENIUM_SESSION_FILE, 'a+')
+    session_file.writelines([
+        driver.command_executor._url,
+        "\n",
+        driver.session_id,
+        "\n",
+    ])
+    session_file.close()
+
+    return driver
+
 def browser_open():
 
 # Инициализируем драйвер
@@ -30,7 +78,8 @@ def browser_open():
 # path = '.\chromedriver_win32'
 # сейчас на случай отсутствия драйвера он принудительно устанавливается при первом запуске
 
-    driver = webdriver.Chrome(ChromeDriverManager().install())
+    driver = build_driver()
+#    driver = webdriver.Chrome(ChromeDriverManager().install())
 
 # Открываем нужную вкладку
     driver.get("https://messages.google.com/web/")
@@ -145,7 +194,10 @@ driver = browser_open()
 df = main_parser()
 
 for row in df.itertuples():
-    if logs_check(row[1]):
-        new_sms_start(driver)
-        sms_send(driver, row[1], row[2])
+    if len(row[1]) > 9 and row[1][0] == '+' and len(row[2]) > 3:
+        if logs_check(row[1]):    
+            new_sms_start(driver)
+            sms_send(driver, row[1], row[2])
+    else:
+        print(f'Номер телефона {row[1]} некорректный или сообщение пустое - {row[2]}')
     time.sleep(base_delay*10)
